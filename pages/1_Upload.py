@@ -9,9 +9,10 @@ from db import queries
 
 st.set_page_config(page_title="Upload · TutorLens", page_icon="📄", layout="wide")
 ui.init()
-ui.sidebar_student()
+student_id = ui.sidebar_student()
 
-st.title("📄 Upload a course PDF")
+ui.page_heading("what would you like to learn today?")
+st.write("📄 Upload your course materials and start learning.")
 st.write("Use a text-based PDF (lecture notes, slides exported as PDF, a textbook chapter).")
 
 uploaded = st.file_uploader("Drag and drop a PDF here, or browse", type=["pdf"])

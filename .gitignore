@@ -1,5 +1,18 @@
+cat > .gitignore << 'EOF'
+# Python virtual environments
+venv/
 .venv/
-.env
-data/chroma/
-data/*.db
+
+# Python cache
 __pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+EOF

@@ -12,9 +12,14 @@ class Question(BaseModel):
     difficulty: Difficulty
     type: QuestionType
     question: str = Field(min_length=1)
-    options: list[str] = Field(default_factory=list)  # only used for mcq
-    answer: str = Field(min_length=1)
-    rubric: list[str] = Field(default_factory=list)   # points a good answer must cover
+    options: list[str] = Field(default_factory=list)
+
+    # MCQ answers are resolved from answer_index.
+    # Short/exercise questions still use answer text.
+    answer: str = ""
+    answer_index: int | None = Field(default=None, ge=0, le=3)
+
+    rubric: list[str] = Field(default_factory=list)
     source_page: int = 1
 
     @field_validator("difficulty", "type", mode="before")
@@ -22,29 +27,84 @@ class Question(BaseModel):
     def _lowercase(cls, value):
         return value.strip().lower() if isinstance(value, str) else value
 
+    @model_validator(mode="before")
+    @classmethod
+    def _resolve_mcq_answer(cls, data):
+        if not isinstance(data, dict):
+            return data
+
+        data = dict(data)
+
+        if str(data.get("type", "")).strip().lower() == "mcq":
+            options = data.get("options") or []
+            index = data.get("answer_index")
+
+            if index is not None:
+                try:
+                    index = int(index)
+                except (TypeError, ValueError):
+                    raise ValueError("MCQ answer_index must be an integer")
+
+                if not 0 <= index < len(options):
+                    raise ValueError(
+                        "MCQ answer_index must point to an existing option"
+                    )
+
+                # Python selects the exact option text.
+                data["answer"] = options[index]
+
+        return data
+
     @model_validator(mode="after")
     def _check_consistency(self):
         if self.type == "mcq":
-            if len(self.options) < 2:
-                raise ValueError("an mcq question needs at least 2 options")
-            # the answer must be one of the options (accept "B" or "b" as a letter)
+
+            if len(self.options) != 4:
+                raise ValueError(
+                    "An MCQ question must have exactly 4 options"
+                )
+
+            normalized_options = [
+                option.strip().casefold()
+                for option in self.options
+            ]
+
+            if len(set(normalized_options)) != 4:
+                raise ValueError(
+                    "MCQ options must be unique"
+                )
+
+            if not self.answer.strip():
+                raise ValueError(
+                    "MCQ must have a valid correct answer"
+                )
+
             matched = None
-            answer = self.answer.strip()
+
             for option in self.options:
-                if option.strip().lower() == answer.lower():
+                if option.strip().casefold() == self.answer.strip().casefold():
                     matched = option
                     break
-            if matched is None and len(answer) == 1 and answer.upper() in "ABCDEF":
-                index = "ABCDEF".index(answer.upper())
-                if index < len(self.options):
-                    matched = self.options[index]
+
             if matched is None:
-                raise ValueError("the mcq answer must be exactly one of the options")
+                raise ValueError(
+                    "The MCQ answer must match one of the options"
+                )
+
             self.answer = matched
+
             if not self.rubric:
                 self.rubric = ["Chooses the correct option"]
-        elif not self.rubric:
-            self.rubric = [self.answer]
+
+        else:
+            if not self.answer.strip():
+                raise ValueError(
+                    "Short and exercise questions need an answer"
+                )
+
+            if not self.rubric:
+                self.rubric = [self.answer]
+
         return self
 
 

@@ -37,7 +37,7 @@ SECTION_CONTEXT_CHARS = 6000 # max text sent to the LLM when explaining a sectio
 
 # ---- LLM behaviour -------------------------------------------------------
 TEMP_TEACH = 0.4             # a little creativity for explanations
-TEMP_JSON = 0.1              # low temperature = consistent questions and marks
+TEMP_JSON = 0.0             # low temperature = consistent questions and marks
 LLM_TIMEOUT_SECONDS = 300    # local models can be slow on a laptop
 
 

@@ -9,10 +9,12 @@ st.set_page_config(page_title="Marks · TutorLens", page_icon="📊", layout="wi
 ui.init()
 student_id = ui.sidebar_student()
 
-st.title("📊 My marks")
+student_name = st.session_state.get("student_name", "Student")
+ui.page_heading("here's your learning progress!")
+st.caption("Your personal learning performance")
 
 if student_id is None:
-    st.warning("Type your name in the sidebar to see your marks.")
+    st.warning("Please enter your name on the Home page first.")
     st.stop()
 
 summary = queries.get_quiz_summary(student_id)

@@ -7,16 +7,17 @@ from models.schemas import Question
 
 st.set_page_config(page_title="Quiz · TutorLens", page_icon="📝", layout="wide")
 ui.init()
-student_id = ui.sidebar_student()
-doc = ui.sidebar_document()
 
-st.title("📝 Quiz")
+doc = ui.sidebar_document()
+student_id = ui.sidebar_student()
+
+ui.page_heading("are you ready for a quiz?")
 
 if doc is None:
     st.info("No PDF yet. Go to the **Upload** page first.")
     st.stop()
 if student_id is None:
-    st.warning("Type your name in the sidebar so your marks can be saved.")
+    st.warning("Please enter your name on the Home page first.")
     st.stop()
 
 ok, message = llm_client.check_ollama()

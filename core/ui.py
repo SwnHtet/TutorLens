@@ -11,18 +11,28 @@ def init() -> None:
     database.init_db()
 
 
+
 def sidebar_student() -> int | None:
-    """Ask for the student's name in the sidebar and return the student id."""
-    st.sidebar.header("Student")
-    name = st.sidebar.text_input(
-        "Your name",
-        value=st.session_state.get("student_name", ""),
-        placeholder="e.g. Somchai",
-    ).strip()
-    st.session_state["student_name"] = name
+    """Get student ID from the name entered on Home."""
+    name = st.session_state.get("student_name", "").strip()
+
     if not name:
         return None
-    return queries.get_or_create_student(name)
+
+    student_id = queries.get_or_create_student(name)
+    st.session_state["student_id"] = student_id
+
+    return student_id
+
+
+def page_heading(message: str) -> None:
+    """Display personalized page heading."""
+    name = st.session_state.get("student_name", "").strip()
+
+    if name:
+        st.title(f"👋 {name}, {message}")
+    else:
+        st.title(message)
 
 
 def sidebar_document() -> dict | None:
